@@ -29,8 +29,8 @@ A complete web-based system for tracking non-emergency IT and facility incidents
 | 9 | Maigari Mathias Tukura | FT24CMP0530 | Integration & Final Documentation |
 
 **Course:** NS-CSC229  
-**Department:** Community and Social Services  
-**Location:** Abuja, FCT, Nigeria  
+**Department:** Computer Science Department 
+**Location:** Nasarawa State, Nigeria  
 **Institution:** Nasarawa State University, Keffi
 
 ---
@@ -179,7 +179,7 @@ The app is configured for deployment on Render:
 ## Contact
 
 **Group 52** – NS-CSC229 Course Project  
-Community and Social Services Department  
+Computer Science Department  
 Nasarawa State University, Keffi  
 Nasarawa State,Nigeria
 
