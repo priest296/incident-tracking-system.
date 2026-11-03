@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Incident Tracking System{% endblock %}
+
+{% block content %}
+<h1>Incident Dashboard</h1>
+<p class="lead">Track and manage non-emergency IT and facility incidents.</p>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('index') }}" class="filter-form">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search description, category, reporter...">
+            </div>
+            <div class="filter-group">
+                <label>Category</label>
+                <select name="category">
+                    <option value="">All</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status</label>
+                <select name="status">
+                    <option value="">All</option>
+                    {% for st in statuses %}
+                    <option value="{{ st }}" {% if selected_status == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Assigned To</label>
+                <select name="assigned_to">
+                    <option value="">All</option>
+                    {% for a in assignees %}
+                    <option value="{{ a }}" {% if selected_assigned == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group filter-actions">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline">Clear</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ incidents|length }}</div>
+        <div class="stat-label">Total Incidents</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ incidents|selectattr('status', 'equalto', 'Open')|list|length }}</div>
+        <div class="stat-label">Open</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ incidents|selectattr('status', 'equalto', 'In Progress')|list|length }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value sla-overdue">{{ incidents|selectattr('sla_status', 'equalto', 'Overdue')|list|length }}</div>
+        <div class="stat-label">Overdue</div>
+    </div>
+</div>
+
+{% if incidents|length == 0 %}
+    <div class="empty-state">
+        <p>No incidents match your filters.</p>
+        {% if user.role in ('admin', 'reporter') %}
+        <a href="{{ url_for('new_incident') }}" class="btn btn-primary">Report First Incident</a>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="table-wrapper">
+        <table class="incidents-table">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Reporter</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Due Date</th>
+                    <th>SLA</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inc in incidents %}
+                <tr>
+                    <td class="ticket-id">#{{ inc['ticket_id'] }}</td>
+                    <td><span class="badge badge-{{ inc['category']|lower }}">{{ inc['category'] }}</span></td>
+                    <td class="description">{{ inc['description'] }}</td>
+                    <td>{{ inc['reporter'] }}</td>
+                    <td><span class="status-badge status-{{ inc['status']|lower }}">{{ inc['status'] }}</span></td>
+                    <td>{{ inc['assigned_to'] or '-' }}</td>
+                    <td>{{ inc['due_date'] or '-' }}</td>
+                    <td><span class="sla-badge sla-{{ inc['sla_status']|lower|replace(' ', '-') }}">{{ inc['sla_status'] }}</span></td>
+                    <td>{{ inc['created_at'] }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('incident_detail', ticket_id=inc['ticket_id']) }}" class="btn btn-sm btn-view">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+<div class="charts-grid">
+    <div class="card chart-card">
+        <h3>Incidents by Status</h3>
+        <canvas id="statusChart"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>Incidents by Category</h3>
+        <canvas id="categoryChart"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>Incidents by Assignee</h3>
+        <canvas id="assigneeChart"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>SLA Status</h3>
+        <canvas id="slaChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/stats')
+        .then(r => r.json())
+        .then(data => {
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.by_status.map(r => r.status),
+                    datasets: [{
+                        data: data.by_status.map(r => r.c),
+                        backgroundColor: ['#fef3c7', '#dbeafe', '#d1fae5', '#e2e8f0']
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'By Status' } } }
+            });
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.by_category.map(r => r.category),
+                    datasets: [{
+                        label: 'Count',
+                        data: data.by_category.map(r => r.c),
+                        backgroundColor: '#2563eb'
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'By Category' } } }
+            });
+            new Chart(document.getElementById('assigneeChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.by_assignee.map(r => r.assigned_to),
+                    datasets: [{
+                        label: 'Count',
+                        data: data.by_assignee.map(r => r.c),
+                        backgroundColor: '#16a34a'
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'By Assignee' } } }
+            });
+            new Chart(document.getElementById('slaChart'), {
+                type: 'pie',
+                data: {
+                    labels: data.by_sla.map(r => r.sla),
+                    datasets: [{
+                        data: data.by_sla.map(r => r.c),
+                        backgroundColor: ['#e2e8f0', '#dc2626', '#ca8a04', '#16a34a']
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'SLA Status' } } }
+            });
+        })
+        .catch(err => console.error('Chart error:', err));
+});
+</script>
+{% endblock %}

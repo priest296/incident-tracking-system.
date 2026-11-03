@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Incident Reporting System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">🎫</span>
+            <span class="brand-name">Incident Tracking System</span>
+        </div>
+        <div class="nav-links">
+            {% if user %}
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Dashboard</a>
+            {% if user.role in ('admin', 'reporter') %}
+            <a href="{{ url_for('new_incident') }}" class="nav-link {% if request.endpoint == 'new_incident' %}active{% endif %}">Report Incident</a>
+            {% endif %}
+            <a href="{{ url_for('export_csv') }}" class="nav-link">Export CSV</a>
+            <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+            <span class="nav-user">
+                <span class="role-badge role-{{ user.role }}">{{ user.role }}</span>
+                {{ user.username }}
+            </span>
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>Group 52 &bull; Incident Reporting and Follow-up System &bull; Community and Social Services</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Incident #{{ incident['ticket_id'] }} - Incident Tracking System{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <h1>Incident #{{ incident['ticket_id'] }}</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-sm btn-back">&larr; Back to Dashboard</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3>Incident Details</h3>
+        <table class="detail-table">
+            <tr><th>Ticket ID</th><td>#{{ incident['ticket_id'] }}</td></tr>
+            <tr><th>Category</th><td><span class="badge badge-{{ incident['category']|lower }}">{{ incident['category'] }}</span></td></tr>
+            <tr><th>Description</th><td>{{ incident['description'] }}</td></tr>
+            <tr><th>Reporter</th><td>{{ incident['reporter'] }}</td></tr>
+            <tr><th>Contact</th><td>{{ incident['contact'] or 'Not provided' }}</td></tr>
+            <tr><th>Created By</th><td>{{ incident['creator_name'] }}</td></tr>
+            <tr><th>Created</th><td>{{ incident['created_at'] }}</td></tr>
+            <tr><th>Last Updated</th><td>{{ incident['updated_at'] }}</td></tr>
+            {% if incident['due_date'] %}
+            <tr><th>Due Date</th><td>{{ incident['due_date'] }}</td></tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="detail-card">
+        <h3>Follow-up &amp; Resolution</h3>
+        <div class="status-row">
+            <span class="status-badge status-{{ incident['status']|lower }}">{{ incident['status'] }}</span>
+            <span class="sla-badge sla-{{ incident['sla_status']|lower|replace(' ', '-') }}">SLA: {{ incident['sla_status'] }}</span>
+        </div>
+
+        {% if user.role in ('admin', 'assignee') %}
+        <form method="POST" action="{{ url_for('update_incident', ticket_id=incident['ticket_id']) }}" class="update-form">
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select name="status" id="status" required>
+                    <option value="Open" {% if incident['status'] == 'Open' %}selected{% endif %}>Open</option>
+                    <option value="In Progress" {% if incident['status'] == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if incident['status'] == 'Resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="Closed" {% if incident['status'] == 'Closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="assigned_to">Assigned To</label>
+                <select name="assigned_to" id="assigned_to">
+                    <option value="" {% if not incident['assigned_to'] %}selected{% endif %}>Unassigned</option>
+                    {% for team in ['IT Support', 'Network Team', 'Maintenance', 'Security'] %}
+                    <option value="{{ team }}" {% if incident['assigned_to'] == team %}selected{% endif %}>{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="date" name="due_date" id="due_date" value="{{ incident['due_date'] or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="resolution">Resolution Record</label>
+                <textarea name="resolution" id="resolution" rows="4">{{ incident['resolution'] or '' }}</textarea>
+                <small class="form-hint">Describe how the incident was resolved.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Incident</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('delete_incident', ticket_id=incident['ticket_id']) }}" class="delete-form" style="display:inline; margin-top:1rem;" onsubmit="return confirm('Are you sure you want to delete this incident?')">
+            <button type="submit" class="btn btn-danger">Delete Incident</button>
+        </form>
+        {% else %}
+        <p class="viewer-note">You have view-only access. Log in as admin or assignee to edit this incident.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

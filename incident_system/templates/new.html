@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Report New Incident - Incident Tracking System{% endblock %}
+
+{% block content %}
+<h1>Report a New Incident</h1>
+<p class="lead">Use this form to report non-emergency IT or facility incidents.</p>
+
+<form method="POST" action="{{ url_for('new_incident') }}" class="report-form">
+    <div class="form-group">
+        <label for="category">Incident Category <span class="required">*</span></label>
+        <select name="category" id="category" required>
+            <option value="">Select a category</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description <span class="required">*</span></label>
+        <textarea name="description" id="description" rows="5" required placeholder="Describe the incident in detail..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="reporter">Reported By <span class="required">*</span></label>
+        <input type="text" name="reporter" id="reporter" required placeholder="Your name or department">
+    </div>
+
+    <div class="form-group">
+        <label for="contact">Contact (phone/email)</label>
+        <input type="text" name="contact" id="contact" placeholder="e.g. 08012345678 or it@school.edu">
+    </div>
+
+    <div class="form-group">
+        <label for="due_date">Due Date (SLA)</label>
+        <input type="date" name="due_date" id="due_date">
+        <small class="form-hint">Optional target resolution date. Used for SLA tracking.</small>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Submit Incident</button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
+    </div>
+</form>
+{% endblock %}
