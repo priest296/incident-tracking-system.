@@ -181,7 +181,7 @@ The app is configured for deployment on Render:
 **Group 52** – NS-CSC229 Course Project  
 Community and Social Services Department  
 Nasarawa State University, Keffi  
-Abuja, FCT, Nigeria
+Nasarawa,Nigeria
 
 ---
 
