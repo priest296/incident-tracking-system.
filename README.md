@@ -1,8 +1,8 @@
 # NS-CSC229 - Group 52 - Incident Tracking System
 
-## Live App: [https://incident-tracking-system.onrender.com](https://incident-tracking-system.onrender.com)
+## Live App: [[https://incident-tracking-system.onrender.com)](https://incident-tracking-system-zy5g.onrender.com]
 
-GitHub + README + All Matric Numbers: [https://github.com/onojaemmanuel08-5572/incident-tracking-system](https://github.com/onojaemmanuel08-5572/incident-tracking-system)
+GitHub + README + All Matric Numbers: (https://github.com/priest296/incident-tracking-system./tree/main)]
 
 ---
 
@@ -172,7 +172,7 @@ The app is configured for deployment on Render:
 1. Push code to GitHub
 2. Connect GitHub repository to Render
 3. Render will auto-detect `render.yaml` and deploy
-4. Your app will be live at `https://incident-tracking-system.onrender.com`
+4. Your app will be live at [`https://incident-tracking-system-zy5g.onrender.com/]`
 
 ---
 
